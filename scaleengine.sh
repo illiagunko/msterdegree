@@ -1,23 +1,32 @@
 #!/bin/bash
 
-cpu_quantity = cat /proc/cpuinfo | grep processor | wc -l
-memory_amount = free -m | awk '{print $2}' | awk ‘(NR == 2)’
-current_memory = free -m | awk '{print $4}’ | awk ‘(NR == 2)’
-let “memory_usage_percent = current_memory/memory_amount*100”
+cpu_quantity=$(cat /proc/cpuinfo | grep processor | wc -l)
+memory_amount=$(free -m | awk '{print $2}' | awk ‘(NR == 2)’)
+current_memory=$(free -m | awk '{print $4}’ | awk ‘(NR == 2)’)
+current_la=$(cut -c-3 /proc/loadavg)
+cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
 
-cut -c-3 /proc/loadavg > la.txt
-current_la = cat la.txt
-printf "%.0f\n" $current_la > la.txt
-current_la = cat la.txt
+let “memory_usage_percent = current_memory/memory_amount*100”
+cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
 
 counter=0
 
-limit_up = cat servicescalepolicy | grep max | awk -F=" " '{print $2}'
-limit_down = cat servicescalepolicy | grep min | awk -F=" " '{print $2}'
-current_pods = cat Deployment | grep replicas | awk -Freplicas:" " '{print $2}'
+limit_up=$(cat servicescalepolicy | grep max | awk -F=" " '{print $2}')
+limit_down=$(cat servicescalepolicy | grep min | awk -F=" " '{print $2}')
+current_pods=$(cat Deployment | grep replicas | awk -Freplicas:" " '{print $2}')
 
 rm Deployment.template
 wget https://github.com/illiagunko/msterdegree/blob/master/configuration/Deployment.template
+
+if ["$current_la -gt "$cpu_quantity"]
+    then let "counter = counter + 1"
+elif "$current_la -lt "$cpu_quantity"]
+    then let "counter = counter - 1"
+    
+if ["$cpu_usage_percent -gt 90]
+    then let "counter = counter + 1"
+elif "$cpu_usage_percent -lt 10]
+    then let "counter = counter - 1"
 
 if [ "$counter" -gt 0 ]; 
     then let "new_pods = current_pods + 1"
