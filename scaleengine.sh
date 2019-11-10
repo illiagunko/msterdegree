@@ -16,8 +16,8 @@ deployment_name=$(cat Deployment | grep name | head -n1 | awk '{print$2}')
 
 counter=0
 
-limit_up=$(cat /root/configs/servicescalepolicy | grep max | awk -F=" " '{print $2}')
-limit_down=$(cat /root/configs/servicescalepolicy | grep min | awk -F=" " '{print $2}')
+limit_up=$(cat /root/configs/servicescalepolicy | grep max | awk -F= '{print $2}')
+limit_down=$(cat /root/configs/servicescalepolicy | grep min | awk -F= '{print $2}')
 
 current_pods=$(cat Deployment | grep replicas | awk -Freplicas:" " '{print $2}')
 rm -f /root/Deployment
