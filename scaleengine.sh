@@ -8,7 +8,8 @@ current_la=$(kubectl exec -it $tested_pod -- cut -c-3 /proc/loadavg)
 echo $current_la > current_la.txt
 current_la=$(cat current_la.txt)
 rounded_la=$(printf "%.0f\n" "$current_la")
-#cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
+#cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}')
+deployment_name=$(cat Deployment | grep name | head -n1 | awk '{print$2}')
 
 #let “memory_usage_percent = current_memory/memory_amount*100”
 #cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
@@ -50,6 +51,7 @@ fi
 if [[ "$new_pods" -lt "$limit_up" ]] && [[ "$new_pods" -gt "$limit_down" ]]; 
     then 
        sed -i "s/{pods}/$new_pods/" ./Deployment
+       echo "Your deployment $deployment_name was scaled from $current_pods to $new_pods" | mail -s "Scale Engine" illia.gunko69@gmail.com
 fi
 
 kubectl apply -f Deployment
