@@ -8,16 +8,15 @@ current_la=$(kubectl exec -it $tested_pod -- cut -c-3 /proc/loadavg)
 echo $current_la > current_la.txt
 current_la=$(cat current_la.txt)
 rounded_la=$(printf "%.0f\n" "$current_la")
-#cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}')
-deployment_name=$(cat Deployment | grep name | head -n1 | awk '{print$2}')
+#cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
 
 #let “memory_usage_percent = current_memory/memory_amount*100”
 #cpu_usage_percent=$(iostat | sed -n '4p' | awk '{print $1}') 
 
 counter=0
 
-limit_up=$(cat /root/configs/servicescalepolicy | grep max | awk -F= '{print $2}')
-limit_down=$(cat /root/configs/servicescalepolicy | grep min | awk -F= '{print $2}')
+limit_up=$(cat /root/configs/servicescalepolicy | grep max | awk -F=" " '{print $2}')
+limit_down=$(cat /root/configs/servicescalepolicy | grep min | awk -F=" " '{print $2}')
 
 current_pods=$(cat Deployment | grep replicas | awk -Freplicas:" " '{print $2}')
 rm -f /root/Deployment
@@ -48,10 +47,9 @@ elif [[ "$counter" -lt 0 ]];
         let "new_pods=$current_pods-1"
 fi
 
-if [[ "$new_pods" -lt "$limit_up" ]] && [[ "$new_pods" -gt "$limit_down" ]]; 
-    then 
+#if [[ "$new_pods" -lt "$limit_up" ]] && [[ "$new_pods" -gt "$limit_down" ]]; 
+#    then 
        sed -i "s/{pods}/$new_pods/" ./Deployment
-       echo "Your deployment $deployment_name was scaled from $current_pods to $new_pods" | mail -s "Scale Engine" illia.gunko69@gmail.com
-fi
+#fi
 
 kubectl apply -f Deployment
