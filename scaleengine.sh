@@ -23,6 +23,7 @@ rm -f /root/Deployment
 cp /root/configs/Deployment.template /root
 mv /root/Deployment.template /root/Deployment
 
+la_function {
 if [[ "$rounded_la" -gt "$cpu_quantity" ]];
     then 
         let "counter=$counter+1"
@@ -46,7 +47,43 @@ elif [[ "$counter" -lt 0 ]];
   then 
         let "new_pods=$current_pods-1"
 fi
+}
 
+cpu_function {
+if [[ "$cpu_usage_percent" -gt 90 ]];
+    then 
+        let "counter=$counter+1"
+elif [[ "$cpu_usage_percent"-lt 10 ]];
+    then 
+        let "counter=$counter-1"
+fi   
+    
+if [[ "$cpu_usage_percent" -gt 90 ]];
+    then 
+        let "counter=$counter+1"
+elif [[ "$cpu_usage_percent" -lt 10 ]];
+    then 
+        let "counter=$counter-1"
+fi    
+
+if [[ "$counter" -gt 0 ]]; 
+    then 
+l       et "new_pods=$current_pods+1"
+elif [[ "$counter" -lt 0 ]];
+  then 
+        let "new_pods=$current_pods-1"
+fi
+}
+
+ram_function {
+if [[ "$memory_usage_percent" -gt 90 ]];
+    then 
+        let "counter=$counter+1"
+elif [[ "$memory_usage_percent"-lt 10 ]];
+    then 
+        let "counter=$counter-1"
+fi   
+}
 #if [[ "$new_pods" -lt "$limit_up" ]] && [[ "$new_pods" -gt "$limit_down" ]]; 
 #    then 
        sed -i "s/{pods}/$new_pods/" ./Deployment
